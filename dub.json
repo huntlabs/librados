@@ -1,0 +1,14 @@
+{
+	"authors": [
+		"dsby"
+	],
+	"importPaths": [
+		"."
+	],
+	"name": "librados",
+	"targetType": "sourceLibrary",
+	"license": "proprietary",
+	"copyright": "Copyright © 2016, dsby",
+	"description": "Deimos Bindings for librados.",
+	"libs": [ "rados"]
+}
