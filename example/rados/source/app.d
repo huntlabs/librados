@@ -24,15 +24,21 @@ void main()
 	scope(exit)rados_shutdown(cluster);
 
 	IoCtx ctx = new IoCtx(cluster,"rbd");
+	scope(exit)ctx.destroy;
 	string named = "thw";
 	auto name = named.toStringz();
 	writeln("start get stat");
 	ctx.asyncWrite(name,"hahahahahahhhhh",(ref IoCompletion c){
-			writeln("write data ----------");
+			writeln("++++++++++++++write data+++++++++");
 			c.ctx.asyncStat(c.name,(ref IoCompletion com){
 					writeln("the thw size is : ", com.statPsize);
+					writeln("the thw write time is : ", SysTime.fromUnixTime(com.statPmtime).toISOExtString());
 					com.ctx.asyncRead(com.name,com.statPsize,(ref IoCompletion com2){
 							writeln("the thw data is : ", cast(string)com2.readData);
+							com2.ctx.asyncRemove(com2.name,(ref IoCompletion comremove){
+									writeln("--------------remove thw---------");
+									comremove.release();
+								});
 							com2.release();
 						});
 					com.release();
@@ -60,6 +66,5 @@ void main()
 //	rados_aio_wait_for_safe(wcb);
 	writeln("wait 60 seconds");
 	Thread.sleep(60.seconds);
-	ctx.destroy;
 	writeln("writeln suesss");
 }
