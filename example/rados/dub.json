@@ -1,0 +1,12 @@
+{
+	"name": "rados",
+	"authors": [
+		"dsby"
+	],
+	"dependencies": {
+		"librados": {"path" : "../../"}
+	},
+	"description": "A minimal D application.",
+	"copyright": "Copyright © 2016, dsby",
+	"license": "proprietary"
+}
