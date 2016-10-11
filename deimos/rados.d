@@ -15,6 +15,8 @@ module deimos.rados;
 
 import core.stdc.config;
 import core.stdc.time;
+import core.sys.posix.sys.time;
+import core.sys.posix.sys.types;
 
 extern (C):
 
