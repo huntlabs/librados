@@ -2,9 +2,8 @@
 	"authors": [
 		"dsby"
 	],
-	"importPaths": [
-		"."
-	],
+	"importPaths": ["."],
+	"sourcePaths":["."],
 	"name": "librados",
 	"targetType": "sourceLibrary",
 	"license": "proprietary",
