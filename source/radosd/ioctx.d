@@ -230,26 +230,26 @@ class IoCtx
 	void setxattr(T)(const(char) * name, const(char) * key, T[] value) if(isCharByte!T)
 	{
 		int err = rados_setxattr(_io, name,key,cast(const(char) *)value.ptr,value.length);
-		enforce(err >= 0,new IoCtxException(format("rados_setxattr data erro : %s",strerror(-err))));
+		enforce(err >= 0,new IoCtxAttrException(format("rados_setxattr data erro : %s",strerror(-err))));
 	}
 
 	void getxattr(T)(const(char) * name, const(char) * key,ref T[] value) if(isCharByte!T.MutilCharByte)
 	{
 		int err = rados_getxattr(_io, name,key,cast(char *)value.ptr,value.length);
-		enforce(err >= 0,new IoCtxException(format("rados_getxattr data erro : %s",strerror(-err))));
+		enforce(err >= 0,new IoCtxAttrException(format("rados_getxattr data erro : %s",strerror(-err))));
 	}
 
 	void rmxattr(const(char) * name, const(char) * key)
 	{
 		int err = rados_rmxattr(_io, name,key);
-		enforce(err >= 0,new IoCtxException(format("rados_rmxattr data erro : %s",strerror(-err))));
+		enforce(err >= 0,new IoCtxAttrException(format("rados_rmxattr data erro : %s",strerror(-err))));
 	}
 
 	void getxattrs(const(char) * name, void delegate(string key, char[] value) cback)
 	{
 		rados_xattrs_iter_t iter;
 		int err = rados_getxattrs(_io, name, &iter);
-		enforce(err >= 0,new IoCtxException(format("rados_rmxattr data erro : %s",strerror(-err))));
+		enforce(err >= 0,new IoCtxAttrException(format("rados_rmxattr data erro : %s",strerror(-err))));
 		scope(exit)rados_getxattrs_end(iter);
 		char * key = null;
 		char * value = null;

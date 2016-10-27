@@ -7,6 +7,7 @@ import std.datetime;
 import core.sys.posix.pthread;
 
 import radosd.ioctx;
+import core.stdc.string;
 
 void main()
 {
@@ -19,23 +20,73 @@ void main()
 
 	int err = rados_create2(&cluster,cluster_name.toStringz,user_name.toStringz,flags);
 	err = rados_conf_read_file(cluster, "/etc/ceph/ceph.conf".toStringz);
+	if(err < 0){
+		writeln("=====",strerror(-err));
+	}
 	err = rados_connect(cluster);
+	if(err < 0){
+		writeln("=====  ====err ",err , " --",strerror(-err));
+	}
 	assert(err >= 0);
 	scope(exit)rados_shutdown(cluster);
 
 	IoCtx ctx = new IoCtx(cluster,"rbd");
 	scope(exit)ctx.destroy;
-	string named = "thw";
-	auto name = named.toStringz();
+	string attrsname = "1222222.txtexs.bpg";
+	auto name = attrsname.toStringz();
+	try{
+		ctx.getxattrs(name,(string key, char[] value){
+				writeln("key is : ", key, "   value is : ", value);
+			});
+	} catch ( IoCtxException e)
+	{
+		writeln("get new tttt",e.toString);
+	}
+	writeln("-----------------------");
+	try{
+
+		ctx.setxattr(name,"state".toStringz,cast(char[])("full"));
+		ctx.trunc(name,1024);
+	} catch ( IoCtxException e)
+	{
+		writeln("ctx.trunc",e.toString);
+	}
+
 	writeln("start get stat");
 	ctx.asyncWrite(name,"hahahahahahhhhh",(ref IoCompletion c){
+			auto th = Thread.getThis();
+			if(th is null){
+				writeln("th thread is null!!!!");
+				thread_attachThis();
+			}
 			writeln("++++++++++++++write data+++++++++");
 			c.ctx.asyncStat(c.name,(ref IoCompletion com){
+					auto th = Thread.getThis();
+					if(th is null){
+						writeln("th thread is null!!!!");
+						th = thread_attachThis();
+					} 
+					writeln("call back thread id  is : ", th.id);
+					ctx.getxattrs(com.name,(string key, char[] value){
+							writeln("key is : ", key, "   value is : ", value);
+						});
 					writeln("the thw size is : ", com.statPsize);
 					writeln("the thw write time is : ", SysTime.fromUnixTime(com.statPmtime).toISOExtString());
 					com.ctx.asyncRead(com.name,com.statPsize,(ref IoCompletion com2){
+							auto th = Thread.getThis();
+							if(th is null){
+								writeln("th thread is null!!!!");
+								th = thread_attachThis();
+							} 
+							writeln("call back thread id  is : ", th.id);
 							writeln("the thw data is : ", cast(string)com2.readData);
 							com2.ctx.asyncRemove(com2.name,(ref IoCompletion comremove){
+									auto th = Thread.getThis();
+									if(th is null){
+										writeln("th thread is null!!!!");
+										th = thread_attachThis();
+									} 
+									writeln("call back thread id  is : ", th.id);
 									writeln("--------------remove thw---------");
 									comremove.release();
 								});
