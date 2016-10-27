@@ -193,7 +193,7 @@ class IoCtx
 		enforce(err >= 0,new IoCtxCloneException(format("rados_append data erro : %s",strerror(-err))));
 	}
 
-	void read(T)(const(char) * name,ref T[] data, ulong offset = 0) if(isCharByte!T.MutilCharByte)
+	void read(T)(const(char) * name,ref T[] data, ulong offset = 0) if(isMutilCharByte!T)
 	in{assert(data.length > 0);}
 	body{
 		int err = rados_read(_io, name,cast(char*)data.ptr, data.length, offset);
@@ -233,10 +233,11 @@ class IoCtx
 		enforce(err >= 0,new IoCtxAttrException(format("rados_setxattr data erro : %s",strerror(-err))));
 	}
 
-	void getxattr(T)(const(char) * name, const(char) * key,ref T[] value) if(isCharByte!T.MutilCharByte)
+	int getxattr(T)(const(char) * name, const(char) * key,ref T[] value) if(isMutilCharByte!T)
 	{
 		int err = rados_getxattr(_io, name,key,cast(char *)value.ptr,value.length);
 		enforce(err >= 0,new IoCtxAttrException(format("rados_getxattr data erro : %s",strerror(-err))));
+		return err;
 	}
 
 	void rmxattr(const(char) * name, const(char) * key)
@@ -366,11 +367,14 @@ private:
 	Mutex _mutex;
 }
 
+template isMutilCharByte(T)
+{
+	enum bool isMutilCharByte = is(T == byte) || is(T == ubyte) || is(T == char) ;
+}
 
 template isCharByte(T)
 {
-	enum isCharByte = is(Unqual!T == byte) || is(Unqual!T == ubyte) || is(Unqual!T == char) ;
-	enum MutilCharByte = is(T == byte) || is(T == ubyte) || is(T == char) ;
+	enum bool isCharByte = is(Unqual!T == byte) || is(Unqual!T == ubyte) || is(Unqual!T == char) ;
 }
 
 private:

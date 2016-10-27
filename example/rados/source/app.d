@@ -47,6 +47,11 @@ void main()
 
 		ctx.setxattr(name,"state".toStringz,cast(char[])("full"));
 		ctx.trunc(name,1024);
+		char[256] value;
+		char[] hv = value[];
+		int s = ctx.getxattr(name,"hahah".toStringz,hv);
+		char[] tv = hv[0..s];
+		writeln("getxattr hahah is  : ", tv);
 	} catch ( IoCtxException e)
 	{
 		writeln("ctx.trunc",e.toString);
