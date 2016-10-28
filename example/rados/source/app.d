@@ -5,6 +5,7 @@ import deimos.rados;
 import core.thread;
 import std.datetime;
 import core.sys.posix.pthread;
+import core.memory;
 
 import radosd.ioctx;
 import core.stdc.string;
@@ -32,26 +33,26 @@ void main()
 
 	IoCtx ctx = new IoCtx(cluster,"rbd");
 	scope(exit)ctx.destroy;
-	string attrsname = "1222222.txtexs.bpg";
+	string attrsname = "1222222.tsqwqwewewxtexs.bpg";
 	auto name = attrsname.toStringz();
-	try{
-		ctx.getxattrs(name,(string key, char[] value){
-				writeln("key is : ", key, "   value is : ", value);
-			});
-	} catch ( IoCtxException e)
-	{
-		writeln("get new tttt",e.toString);
-	}
+//	try{
+//		ctx.getxattrs(name,(string key, char[] value){
+//				writeln("key is : ", key, "   value is : ", value);
+//			});
+//	} catch ( IoCtxException e)
+//	{
+//		writeln("get new tttt",e.toString);
+//	}
 	writeln("-----------------------");
 	try{
 
 		ctx.setxattr(name,"state".toStringz,cast(char[])("full"));
 		ctx.trunc(name,1024);
-		char[256] value;
-		char[] hv = value[];
-		int s = ctx.getxattr(name,"hahah".toStringz,hv);
-		char[] tv = hv[0..s];
-		writeln("getxattr hahah is  : ", tv);
+//		char[256] value;
+//		char[] hv = value[];
+//		int s = ctx.getxattr(name,"hahah".toStringz,hv);
+//		char[] tv = hv[0..s];
+//		writeln("getxattr hahah is  : ", tv);
 	} catch ( IoCtxException e)
 	{
 		writeln("ctx.trunc",e.toString);
@@ -59,12 +60,12 @@ void main()
 
 	writeln("start get stat");
 	ctx.asyncWrite(name,"hahahahahahhhhh",(ref IoCompletion c){
-			auto th = Thread.getThis();
-			if(th is null){
-				writeln("th thread is null!!!!");
-				thread_attachThis();
-			}
-			writeln("++++++++++++++write data+++++++++");
+//			auto th = Thread.getThis();
+//			if(th is null){
+//				writeln("th thread is null!!!!");
+//				th = thread_attachThis();
+//			}
+//			writeln("++++++++++++++write data+++++++++", th.id);
 			c.ctx.asyncStat(c.name,(ref IoCompletion com){
 					auto th = Thread.getThis();
 					if(th is null){
@@ -93,13 +94,9 @@ void main()
 									} 
 									writeln("call back thread id  is : ", th.id);
 									writeln("--------------remove thw---------");
-									comremove.release();
 								});
-							com2.release();
 						});
-					com.release();
 				});
-			c.release();
 		});
 
 
@@ -121,6 +118,6 @@ void main()
 //	Thread.sleep(10.seconds);
 //	rados_aio_wait_for_safe(wcb);
 	writeln("wait 60 seconds");
-	Thread.sleep(60.seconds);
+	Thread.sleep(20.seconds);
 	writeln("writeln suesss");
 }

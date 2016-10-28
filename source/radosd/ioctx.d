@@ -96,12 +96,17 @@ struct IoCompletion
 	@property readData(){return _data;}
 	@property statPsize(){return _psize;}
 	@property statPmtime(){return _pmtime;}
+
 private:
-	this(IoCtx io, const(char) * name)
+	this(IoCtx io, const(char) * name,bool onlyCom)
 	{
 		_io = io;
 		_name = name;
-		int err =  rados_aio_create_completion((&this),&doComplate,&doSafe,&_c);
+		int err = 0;
+		if(onlyCom)
+			err = rados_aio_create_completion((&this),&doSafe,null,&_c);
+		else
+			err = rados_aio_create_completion((&this),&doComplate,&doSafe,&_c);
 		enforce(err >= 0,new IoCtxException(format("rados_aio_create_completion data erro : %s",strerror(-err))));
 	}
 
@@ -320,6 +325,17 @@ class IoCtx
 		enforce(err >= 0,new IoCtxWriteException(format("rados_aio_remove data erro : %s",strerror(-err))));
 	}
 
+	void asyncRead(T)(const(char) * name,T[] data,iocBack thesafe, iocBack thecomplate = null, ulong offset = 0) if(isMutilCharByte!T)
+	{
+		IoCompletion * com = newIoCompletion(name);
+		scope(failure)removeIoCompletion(com);
+		com._completion = thecomplate;
+		com._safe = thesafe;
+		com._data = cast(char[])data;
+		int err = rados_aio_read(_io, name,com._c,com._data.ptr,readLen,offset);
+		enforce(err >= 0,new IoCtxWriteException(format("rados_aio_remove data erro : %s",strerror(-err))));
+	}
+
 	void asyncRead(const(char) * name,size_t readLen,iocBack thesafe, iocBack thecomplate = null, ulong offset = 0)
 	{
 		IoCompletion * com = newIoCompletion(name);
@@ -333,17 +349,17 @@ class IoCtx
 
 	void asyncStat(const(char) * name,iocBack thecomplate)
 	{
-		IoCompletion * com = newIoCompletion(name);
+		IoCompletion * com = newIoCompletion(name,true);
 		scope(failure)removeIoCompletion(com);
-		com._completion = thecomplate;
+		com._safe = thecomplate;
 		int err = rados_aio_stat(_io,name, com._c, &com._psize, &com._pmtime);
 		enforce(err >= 0,new IoCtxException(format("rados_aio_cancel data erro : %s",strerror(-err))));
 	}
 
 protected:
-	IoCompletion * newIoCompletion(const(char) * name)
+	IoCompletion * newIoCompletion(const(char) * name, bool onlyCom = false)
 	{
-		IoCompletion * com = new IoCompletion(this,name);
+		IoCompletion * com = new IoCompletion(this,name,onlyCom);
 		synchronized(_mutex){
 			_cbacks[com] = 0;
 		}
@@ -356,7 +372,9 @@ protected:
 		synchronized(_mutex){
 			_cbacks.remove(com);
 		}
-
+		import core.memory;
+		destroy(*com);
+		GC.free(com);
 	}
 
 private:
