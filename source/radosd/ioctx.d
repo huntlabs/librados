@@ -12,7 +12,7 @@ import core.stdc.string;
 
 public import radosd.exception;
 
-alias iocBack =  void delegate(ref IoCompletion ioc);
+alias iocBack =  void delegate(ref IoCompletion ioc) nothrow;
 
 struct IoCompletion
 {
@@ -110,13 +110,13 @@ private:
 		enforce(err >= 0,new IoCtxException(format("rados_aio_create_completion data erro : %s",strerror(-err))));
 	}
 
-	void do_completion()
+	void do_completion() nothrow
 	{
 		if(_completion)
 			_completion(this);
 	}
 
-	void do_safe()
+	void do_safe() nothrow
 	{
 		if(_safe)
 			_safe(this);
@@ -332,7 +332,7 @@ class IoCtx
 		com._completion = thecomplate;
 		com._safe = thesafe;
 		com._data = cast(char[])data;
-		int err = rados_aio_read(_io, name,com._c,com._data.ptr,readLen,offset);
+		int err = rados_aio_read(_io, name,com._c,com._data.ptr,data.length,offset);
 		enforce(err >= 0,new IoCtxWriteException(format("rados_aio_remove data erro : %s",strerror(-err))));
 	}
 
