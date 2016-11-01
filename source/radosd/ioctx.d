@@ -91,6 +91,11 @@ struct IoCompletion
 		_c = null;
 	}
 
+	int getReturnValue()
+	{
+		return rados_aio_get_return_value(_c);
+	}
+
 	@property ctx(){return _io;}
 	@property name(){return _name;}
 	@property readData(){return _data;}

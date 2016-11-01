@@ -89,7 +89,11 @@ void main()
 														th = thread_attachThis();
 													} 
 													writeln("call back thread id  is : ", th.id);
-													writeln("the thw data is : ", cast(string)com2.readData);
+													int size = com2.getReturnValue();
+													writeln("---------the thw data length is : ", size);
+													char[] data = com2.readData;
+													data = data[0..size];
+													writeln("the thw data is : ", cast(string)data);
 													com2.ctx.asyncRemove(com2.name,(ref IoCompletion comremove){
 															collectException({
 																	auto th = Thread.getThis();
