@@ -203,11 +203,12 @@ class IoCtx
 		enforce(err >= 0,new IoCtxCloneException(format("rados_append data erro : %s",strerror(-err))));
 	}
 
-	void read(T)(const(char) * name,ref T[] data, ulong offset = 0) if(isMutilCharByte!T)
+	int read(T)(const(char) * name,ref T[] data, ulong offset = 0) if(isMutilCharByte!T)
 	in{assert(data.length > 0);}
 	body{
 		int err = rados_read(_io, name,cast(char*)data.ptr, data.length, offset);
 		enforce(err >= 0,new IoCtxReadException(format("rados_write data erro : %s",strerror(-err))));
+		return err;
 	}
 
 	char[] read(const(char) * name,size_t readlen, ulong offset = 0)
@@ -215,7 +216,7 @@ class IoCtx
 		char[] data = new char[readlen];
 		int err = rados_read(_io, name,data.ptr, readlen, offset);
 		enforce(err >= 0,new IoCtxReadException(format("rados_write data erro : %s",strerror(-err))));
-		return data;
+		return data[0..err];
 	}
 
 	void remove(const(char) * name)
